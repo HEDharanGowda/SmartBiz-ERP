@@ -1,6 +1,9 @@
 import { createServiceApp } from '@smartbiz/service-kit';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const app = createServiceApp({ name: 'api-gateway', port: 3000 });
+
+app.use('/api/v1/auth', createProxyMiddleware({ target: 'http://localhost:3001', changeOrigin: true }));
 
 app.get('/api/v1/routes', (_request, response) => {
   response.json({

@@ -88,6 +88,9 @@ The service files are currently scaffolded with placeholder endpoints and health
 - Shared Express setup in `packages/service-kit/src/createServiceApp.ts`
 - Standard `/health` and `/ready` endpoints for services
 - Security middleware: `helmet`, `cors`, JSON parsing, and request logging
+- Redis client helper in `packages/service-kit/src/redisClient.ts`
+- Auth service starting to use Redis-backed session and token storage
+- API gateway proxying `/api/v1/auth` to the auth service
 
 ### Frontend foundation
 
@@ -103,7 +106,7 @@ The service files are currently scaffolded with placeholder endpoints and health
 ## What Is Not Implemented Yet
 
 - Real database schemas and migrations
-- Authentication flows, refresh token rotation, OTP, and password reset logic
+- Full authentication flows, refresh token rotation, OTP verification, and password reset delivery
 - Gateway routing rules, auth guards, and rate limiting
 - Domain event publishing and consumers for Kafka and RabbitMQ
 - Redis session management and cache invalidation
@@ -119,12 +122,12 @@ The service files are currently scaffolded with placeholder endpoints and health
 
 ## Recommended Next Steps
 
-1. Implement shared environment/config loading for all services.
-2. Build the auth service first because it is the foundation for the rest of the platform.
-3. Add real routing and auth checks to the API gateway.
+1. Finish the auth service with verified email, OTP challenge, password reset, and logout/session invalidation flows.
+2. Add shared environment loading so Redis, PostgreSQL, MongoDB, Kafka, and RabbitMQ URLs come from config.
+3. Add gateway guards and route forwarding for the rest of the services.
 4. Implement PostgreSQL and MongoDB access layers per service.
-5. Wire Redis caching and session storage.
-6. Add Kafka producers/consumers and RabbitMQ jobs.
+5. Wire Kafka consumers/producers for business events.
+6. Wire RabbitMQ jobs for retryable background work like email delivery.
 7. Replace the current React landing page with the real ERP dashboard and module screens.
 8. Add Dockerfiles and run commands for each service.
 
