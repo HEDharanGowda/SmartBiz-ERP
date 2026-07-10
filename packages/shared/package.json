@@ -1,0 +1,12 @@
+{
+  "name": "@smartbiz/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "echo shared package",
+    "lint": "echo shared package",
+    "test": "echo shared package"
+  }
+}
