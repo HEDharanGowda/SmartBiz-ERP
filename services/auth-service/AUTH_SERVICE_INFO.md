@@ -2,39 +2,67 @@
 
 ## Purpose
 
-The Auth Service owns identity and session control for the platform. It is the first domain service to become functional because every other service depends on authenticated users and valid sessions.
+The Auth Service is the identity boundary for SmartBiz ERP. It owns registration, verification, login, token issuance, session control, password reset, password change, and MFA verification.
 
-## Current Code
+## Current Architecture
 
-- `src/index.ts` exposes the auth API surface.
-- `src/authStore.ts` contains the current auth/session logic.
-- Redis is used for session and token storage.
-- The service is connected to the API Gateway through proxy forwarding.
+- Node.js service running on port `3001`
+- Express app created through `packages/service-kit`
+- MongoDB for durable user and token data
+- Redis for short-lived sessions and OTP challenges
+- JWT for access and refresh tokens
+- bcrypt with 12 rounds for password hashing
 
 ## Dependencies
 
-- `redis` for session storage and token TTL handling
-- `bcryptjs` for password hashing
-- `jsonwebtoken` for JWT access and refresh token generation
-- `dotenv` for environment configuration loading
-- `@smartbiz/service-kit` for the shared app bootstrap
+- `mongodb` for the auth schema and persistence
+- `redis` for session storage and OTP state
+- `bcryptjs` for password hashing and password verification
+- `jsonwebtoken` for access and refresh token generation
+- `dotenv` for environment configuration
+- `@smartbiz/service-kit` for common app bootstrap and health endpoints
 
-## What the Current Code Handles
+## MongoDB Schema
 
-- User registration scaffold
-- Email verification token generation
-- Login scaffold
-- Refresh token scaffold
-- Logout scaffold
-- Redis session storage helpers
+The service currently uses these collections:
 
-## Intended Architecture
+- `auth_users`
+- `auth_email_verifications`
+- `auth_password_resets`
 
-- Password hashes should use bcrypt with at least 12 rounds.
-- Access tokens should expire in 15 minutes.
-- Refresh tokens should expire in 7 days.
-- Sessions should be stored in Redis and invalidated on logout or password change.
-- OTP should be used when multi-factor authentication is enabled.
+### `auth_users`
+
+Stores the durable user account document.
+
+Important fields:
+
+- `id`
+- `email`
+- `passwordHash`
+- `emailVerified`
+- `mfaEnabled`
+- `roles`
+- `createdAt`
+- `updatedAt`
+- `lastLoginAt`
+- `failedLoginAttempts`
+- `lockoutUntil`
+
+### `auth_email_verifications`
+
+Stores email verification tokens with TTL expiry.
+
+### `auth_password_resets`
+
+Stores password reset tokens with TTL expiry.
+
+## Redis Keys
+
+Redis is used for runtime session and OTP state.
+
+- `smartbiz:auth:session:*` for access/session payloads
+- `smartbiz:auth:user-sessions:*` for per-user session sets
+- `smartbiz:auth:otp:*` for MFA challenges
 
 ## Current API Surface
 
@@ -48,15 +76,51 @@ The Auth Service owns identity and session control for the platform. It is the f
 - `POST /api/v1/auth/reset-password`
 - `POST /api/v1/auth/change-password`
 - `GET /api/v1/auth/me`
+- `GET /api/v1/auth/schema`
+
+## What the Current Code Does
+
+- Registers users in MongoDB with bcrypt password hashes.
+- Generates and stores email verification tokens with MongoDB TTL indexes.
+- Blocks login for unverified users.
+- Supports MFA by generating a 6-digit OTP challenge in Redis.
+- Issues JWT access and refresh tokens after successful auth.
+- Stores active sessions in Redis.
+- Supports refresh-token exchange.
+- Supports logout and session invalidation.
+- Supports password reset and password change flows.
+- Enforces account lockout after repeated failed login attempts.
+
+## Important Behavior
+
+- Access tokens expire after 15 minutes.
+- Refresh tokens expire after 7 days.
+- OTP challenges expire after 5 minutes.
+- Password reset and email verification tokens expire after 1 hour.
+- Password hashes use bcrypt with minimum 12 rounds.
+- Sessions are invalidated on password reset and password change.
+
+## Frontend Integration
+
+The React app now includes an auth console that calls the gateway and exercises the auth service flows:
+
+- Register
+- Email verification
+- Login
+- OTP verification
+- Refresh token
+- Logout
+- Password reset
+- Change password
+- Read current user profile
 
 ## What It Will Do Next
 
-- Replace scaffolds with real user persistence.
-- Send email verification and password reset notifications.
-- Persist refresh-token and session metadata safely.
-- Add account lockout after repeated failed logins.
-- Publish auth-related events if needed by notification or audit flows.
+- Send real email verification and password reset messages.
+- Add audit/event publishing where needed.
+- Replace in-memory development output with proper mail delivery.
+- Add more defensive request validation and rate limiting.
 
 ## Update Rule
 
-Update this file whenever auth flows, Redis keys, security rules, or token/session behavior change.
+Update this file whenever auth flows, collections, Redis key patterns, security rules, or token lifetimes change.

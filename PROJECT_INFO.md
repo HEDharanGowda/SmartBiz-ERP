@@ -37,8 +37,8 @@ Frontend React application.
 - `vite.config.ts`: Vite configuration
 - `tsconfig.json`: Frontend TypeScript config
 - `src/main.tsx`: React bootstrap
-- `src/App.tsx`: Current UI shell and architecture overview page
-- `src/styles.css`: Styling for the current landing page
+- `src/App.tsx`: Auth console UI for register, login, MFA, password reset, refresh, logout, and profile lookup
+- `src/styles.css`: Styling for the auth console
 
 ### `packages/shared`
 
@@ -89,13 +89,13 @@ The service files are currently scaffolded with placeholder endpoints and health
 - Standard `/health` and `/ready` endpoints for services
 - Security middleware: `helmet`, `cors`, JSON parsing, and request logging
 - Redis client helper in `packages/service-kit/src/redisClient.ts`
-- Auth service starting to use Redis-backed session and token storage
+- Auth service now uses MongoDB for user and token documents plus Redis for sessions and OTP challenges
 - API gateway proxying `/api/v1/auth` to the auth service
 
 ### Frontend foundation
 
-- A React UI that currently shows a project architecture landing page
-- Responsive styling and a modular card layout
+- A React auth console that exercises the auth service flows
+- Responsive styling and in-memory session state only, with no browser local storage
 
 ### Infrastructure foundation
 
@@ -105,14 +105,14 @@ The service files are currently scaffolded with placeholder endpoints and health
 
 ## What Is Not Implemented Yet
 
-- Real database schemas and migrations
-- Full authentication flows, refresh token rotation, OTP verification, and password reset delivery
+- Real database schemas and migrations for the remaining services
+- Email delivery for verification and password reset messages
 - Gateway routing rules, auth guards, and rate limiting
 - Domain event publishing and consumers for Kafka and RabbitMQ
 - Redis session management and cache invalidation
 - Real CRUD APIs for each microservice
 - Persistence logic for PostgreSQL and MongoDB
-- Frontend business screens and dashboards
+- Frontend business screens and dashboards beyond the auth console
 - API documentation and OpenAPI generation
 
 ## Validation Status
@@ -122,13 +122,13 @@ The service files are currently scaffolded with placeholder endpoints and health
 
 ## Recommended Next Steps
 
-1. Finish the auth service with verified email, OTP challenge, password reset, and logout/session invalidation flows.
+1. Wire real email delivery for verification and password reset messages.
 2. Add shared environment loading so Redis, PostgreSQL, MongoDB, Kafka, and RabbitMQ URLs come from config.
 3. Add gateway guards and route forwarding for the rest of the services.
 4. Implement PostgreSQL and MongoDB access layers per service.
 5. Wire Kafka consumers/producers for business events.
 6. Wire RabbitMQ jobs for retryable background work like email delivery.
-7. Replace the current React landing page with the real ERP dashboard and module screens.
+7. Build the real ERP dashboard and module screens after auth.
 8. Add Dockerfiles and run commands for each service.
 
 ## Notes

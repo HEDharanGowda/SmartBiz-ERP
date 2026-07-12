@@ -8,5 +8,14 @@
     "build": "echo shared package",
     "lint": "echo shared package",
     "test": "echo shared package"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "redis": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.6"
   }
 }
